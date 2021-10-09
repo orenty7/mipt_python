@@ -40,8 +40,8 @@ def angry_smile(center, scale=1):
     circle(screen, BLACK, (x0 - 50 * scale, y0 - 20 * scale), 8 * scale)
     rotated_rect((x0 - 50 * scale, y0 - 50 * scale), BLACK, (100 * scale, 10 * scale), radians(45))
 
-    circle(screen, RED, (x0 + 50 * scale, y0 - 20 * scale), 20 * scale)
-    circle(screen, BLACK, (x0 + 50 * scale, y0 - 20 * scale), 20 * scale, 1)
+    circle(screen, RED, (x0 + 50 * scale, y0 - 20 * scale), 17 * scale)
+    circle(screen, BLACK, (x0 + 50 * scale, y0 - 20 * scale), 17 * scale, 1)
     circle(screen, BLACK, (x0 + 50 * scale, y0 - 20 * scale), 8 * scale)
     rotated_rect((x0 + 50 * scale, y0 - 50 * scale), BLACK, (100 * scale, 10 * scale), radians(-45))
 
