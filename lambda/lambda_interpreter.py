@@ -1,8 +1,9 @@
 from enum import Enum
 from typing import TypedDict
 import time
-#from time import sleep, clock
+# from time import sleep, clock
 from datetime import datetime
+
 
 class ExpressionType(Enum):
     STRING = 0
@@ -25,7 +26,8 @@ class Lambda:
         if self.body[i:i + len(self.var_name):] != self.var_name:
             return False
         if ((i > 0 and self.body[i - 1] in allowed_name_symbols) or
-                (i < len(self.body) - 1 and self.body[i + len(self.var_name)] in allowed_name_symbols)):
+                (i + len(self.var_name) < len(self.body) and self.body[
+                    i + len(self.var_name)] in allowed_name_symbols)):
             return False
         return True
 
@@ -144,22 +146,22 @@ def eval(program):
             return expr['lambda'].eval(expr2['expression']) + rest
 
 
-EPS = 10
-program = '(c (t (f c t f))) (x(y y)) "true" "false"'
-
-time_millis = time.time_ns()/10**6
-
-
-def tick():
-    global time_millis
-    time_to_next_tick = time_millis + 1000/EPS - time.time_ns()/10**6
-    if time_to_next_tick > 0:
-        time.sleep(time_to_next_tick/1000)
+if __name__ == "__main__":
+    EPS = 5
+    program = '(a1 (a2 (a3 a1 a2 a3))) (a5 (a6 (a7 a5 a6 a7))) (x (y y))  (a8(a9 a9)) (a10(a11 a10)) "FALSE" "TRUE"'
     time_millis = time.time_ns() / 10 ** 6
 
 
-while program != '':
-    print(program)
-    program = eval(program)
+    def tick():
+        global time_millis
+        time_to_next_tick = time_millis + 1000 / EPS - time.time_ns() / 10 ** 6
+        if time_to_next_tick > 0:
+            time.sleep(time_to_next_tick / 1000)
+        time_millis = time.time_ns() / 10 ** 6
 
-    tick()
+
+    while program != '':
+        print(program)
+        program = eval(program)
+
+        tick()
