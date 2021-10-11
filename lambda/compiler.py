@@ -1,0 +1,4 @@
+class Compiler:
+    pass
+
+

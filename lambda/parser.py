@@ -10,10 +10,8 @@ class AST_Node:
 
 
 class Parser:
-    SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, EXPR, ROOT, STR, NUM, SEQ = 'SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, EXPR, ROOT, STR, NUM, SEQ'.split(
-        ', ')
-
-    # range(16)
+    SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, EXPR, ROOT, STR, NUM, SEQ = \
+        'SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, EXPR, ROOT, STR, NUM, SEQ'.split(', ')
 
     def __init__(self, program):
         self.lexer = Lexer(program)
@@ -94,6 +92,7 @@ class Parser:
                 self.error('Expected assignment after var name')
             self.lexer.next_token()
             ast_node = AST_Node(Parser.SET, op1=var, op2=self.parse_expression())
+
         elif self.lexer.t_type == Lexer.IF:
             self.lexer.next_token()
 
@@ -117,10 +116,9 @@ class Parser:
             while_body = self.parse_braced_block()
             ast_node = AST_Node(Parser.WHILE, condition, while_body)
         elif self.lexer.t_type == Lexer.NEWL:
-            self.lexer.next_token()
+            self._remove_nl()
             return self.parse()
         else:
-            ast_node = AST_Node(Parser.ROOT)
-            self.lexer.next_token()
-        return ast_node
+            self.error('Unexpected token: ' + self.lexer.t_type)
 
+        return ast_node

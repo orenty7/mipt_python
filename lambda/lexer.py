@@ -1,9 +1,9 @@
 class Lexer:
     NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL = \
-    "NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL".split(', ')
+        "NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL".split(
+            ', ')
 
     ch = ''
-
     def __init__(self, program: str):
         self.program = program
         self.i = 0
