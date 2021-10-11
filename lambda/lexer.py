@@ -1,27 +1,36 @@
 class Lexer:
-    NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT = range(
-        20)
+    NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL = \
+    "NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL".split(', ')
 
-    ch = ' '
+    ch = ''
 
     def __init__(self, program: str):
         self.program = program
         self.i = 0
-        self.getchar()
+        self.token = None
+        self.t_type = None
+        self.t_value = None
 
     def getchar(self):
         self.ch = self.program[self.i] if self.i < len(self.program) else ''
         self.i += 1
 
+    def put_back(self):
+        self.i -= 1
+        self.ch = self.program[self.i] if self.i < len(self.program) else ''
+
     def next_token(self):
         # token = (type, value)
         t_type = None
         t_value = None
+        self.getchar()
         while t_type is None:
             if len(self.ch) == 0:
                 t_type = Lexer.EOF
             elif self.ch == ' ':
                 self.getchar()
+            elif self.ch == '\n':
+                t_type = Lexer.NEWL
             elif self.ch == '(':
                 t_type = Lexer.LBRACKET
             elif self.ch == ')':
@@ -46,18 +55,22 @@ class Lexer:
                     t_type = Lexer.EQ
                 else:
                     t_type = Lexer.ASSGN
+                    self.put_back()
             elif self.ch == '!':
                 self.getchar()
                 if self.ch == '=':
                     t_type = Lexer.NEQ
                 else:
                     t_type = Lexer.NOT
+                    self.put_back()
+
             elif self.ch.isdigit():
                 t_type = Lexer.NUM
                 t_value = 0
                 while self.ch.isdigit():
                     t_value = t_value * 10 + int(self.ch)
                     self.getchar()
+                self.put_back()
 
             elif self.ch == '"':
                 t_type = Lexer.STR
@@ -79,5 +92,9 @@ class Lexer:
                     t_type = Lexer.WHILE
                 else:
                     t_type = Lexer.IDENT
+                self.put_back()
 
-        return t_type, t_value
+        self.t_type = t_type
+        self.t_value = t_value
+        self.token = (t_type, t_value)
+        return self.token

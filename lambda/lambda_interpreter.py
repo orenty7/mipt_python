@@ -147,7 +147,7 @@ def eval(program):
 
 
 if __name__ == "__main__":
-    EPS = 5
+    EPS = 5000
     program = '(a1 (a2 (a3 a1 a2 a3))) (a5 (a6 (a7 a5 a6 a7))) (x (y y))  (a8(a9 a9)) (a10(a11 a10)) "FALSE" "TRUE"'
     time_millis = time.time_ns() / 10 ** 6
 
@@ -161,7 +161,8 @@ if __name__ == "__main__":
 
 
     while program != '':
-        print(program)
+        # print(program)
         program = eval(program)
 
-        tick()
+    # tick()
+    print(out_buffer)
