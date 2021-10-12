@@ -27,7 +27,7 @@ class Lexer:
 
             if self.ch == '':
                 self.t_type = Lexer.EOF
-            elif self.ch == ' ':
+            elif self.ch == ' ' or self.ch == '\n':
                 self.getchar()
             elif self.ch == '(':
                 self.t_type = Lexer.LBRACKET

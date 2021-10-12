@@ -1,9 +1,6 @@
 from parser import Parser, AST_Node
-
-program = '{<81> {<82> <81> ({<85> {<86> <85> [{<87> {<88> {<89> <87> <88> (<88> <89>) }}}] <86> }} <82>) {<83> {<84> <84>}}}} {<77> {<78> <77> (<77> (<77> (<77> (<77> (<78>)))))}}{<79> {<80> <79> (<79> (<79> (<79> (<79> (<79> (<80>))))))}} {<x> "1" <x>} ""'
-
-parser = Parser(program)
-ast = parser.parse_all()
+import sys
+import time
 
 
 def call_lambda(var, body, arg):
@@ -19,9 +16,6 @@ def call_lambda(var, body, arg):
 
     if body.node_type == Parser.LAMBDA or body.node_type == Parser.SEQ:
         return AST_Node(body.node_type, call_lambda(var, body.op1, arg), call_lambda(var, body.op2, arg))
-
-
-out_buffer = ''
 
 
 def eval(ast):
@@ -60,8 +54,28 @@ def str_ast(ast):
         return str_ast(ast.op1) + ' ' + str_ast(ast.op2)
 
 
-while ast is not None:
-    print(str_ast(ast))
-    ast = eval(ast)
+def tick():
+    global time_millis
+    time_to_next_tick = time_millis + 1000 / EPS - time.time_ns() / 10 ** 6
+    if time_to_next_tick > 0:
+        time.sleep(time_to_next_tick / 1000)
+    time_millis = time.time_ns() / 10 ** 6
+
+
+EPS = 1
+time_millis = time.time_ns() / 10 ** 6
+
+with open('../program.lm', 'r') as file:
+    program = file.read()
+
+parser = Parser(program)
+ast = parser.parse_all()
+out_buffer = ''
+try:
+    while ast is not None:
+        print(str_ast(ast))
+        ast = eval(ast)
+except:
+    pass
 print(out_buffer)
 print(len(out_buffer))
