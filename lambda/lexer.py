@@ -4,6 +4,7 @@ class Lexer:
             ', ')
 
     ch = ''
+
     def __init__(self, program: str):
         self.program = program
         self.i = 0
@@ -15,7 +16,7 @@ class Lexer:
         self.ch = self.program[self.i] if self.i < len(self.program) else ''
         self.i += 1
 
-    def put_back(self):
+    def putback(self):
         self.i -= 1
         self.ch = self.program[self.i] if self.i < len(self.program) else ''
 
@@ -55,14 +56,14 @@ class Lexer:
                     t_type = Lexer.EQ
                 else:
                     t_type = Lexer.ASSGN
-                    self.put_back()
+                    self.putback()
             elif self.ch == '!':
                 self.getchar()
                 if self.ch == '=':
                     t_type = Lexer.NEQ
                 else:
                     t_type = Lexer.NOT
-                    self.put_back()
+                    self.putback()
 
             elif self.ch.isdigit():
                 t_type = Lexer.NUM
@@ -70,7 +71,7 @@ class Lexer:
                 while self.ch.isdigit():
                     t_value = t_value * 10 + int(self.ch)
                     self.getchar()
-                self.put_back()
+                self.putback()
 
             elif self.ch == '"':
                 t_type = Lexer.STR
@@ -92,7 +93,7 @@ class Lexer:
                     t_type = Lexer.WHILE
                 else:
                     t_type = Lexer.IDENT
-                self.put_back()
+                self.putback()
 
         self.t_type = t_type
         self.t_value = t_value

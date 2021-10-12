@@ -8,9 +8,10 @@ from datetime import datetime
 class ExpressionType(Enum):
     STRING = 0
     LAMBDA = 1
+    SUB_EXPRESSION = 2
 
 
-allowed_name_symbols = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890"
+allowed_name_symbols = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890<>"
 
 
 class Lambda:
@@ -46,7 +47,6 @@ class Lambda:
 
 
 # program = input()
-
 
 def remove_spaces(string):
     while len(string) > 0 and string[0] == ' ':
@@ -94,7 +94,7 @@ def parse(program):
 
         return expr, program[i + 1::]
 
-    elif program[0] == "(":
+    elif program[0] == '{':
         expr = {
             'type': ExpressionType.LAMBDA,
             'expression': ''
@@ -103,9 +103,9 @@ def parse(program):
         i = 0
         while i < len(program):
             expr['expression'] += program[i]
-            if program[i] == '(':
+            if program[i] == '{':
                 brackets += 1
-            elif program[i] == ')':
+            elif program[i] == '}':
                 brackets -= 1
 
             if brackets == 0:
@@ -128,16 +128,47 @@ def parse(program):
         expr['lambda'] = Lambda(var_name, body)
         return expr, program
 
+    elif program[0] == '(':
+        expr = {
+            'type': ExpressionType.SUB_EXPRESSION,
+            'expression': ''
+        }
+        brackets = 0
+        i = 0
+        while i < len(program):
+            expr['expression'] += program[i]
+            if program[i] == '(':
+                brackets += 1
+            elif program[i] == ')':
+                brackets -= 1
+
+            if brackets == 0:
+                break
+
+            if brackets < 0:
+                raise Exception("mismatched brackets in l-expression")
+            i += 1
+        else:
+            if brackets != 0:
+                raise Exception("mismatched brackets in l-expression")
+
+        program = program[i + 1::]
+        return expr, program
     else:
         raise Exception("Wrong l-expression error")
 
 
 def eval(program):
     global out_buffer
+    remove_spaces(program)
+    if len(program) == 0:
+        return ''
     expr, rest = parse(program)
     if expr['type'] == ExpressionType.STRING:
         out_buffer += expr['literal']
         return rest
+    elif expr['type'] == ExpressionType.SUB_EXPRESSION:
+        return expr['expression'][1:-1:] + rest
     else:
         expr2, rest = parse(rest)
         if expr2['type'] == ExpressionType.STRING:
@@ -146,9 +177,11 @@ def eval(program):
             return expr['lambda'].eval(expr2['expression']) + rest
 
 
+
 if __name__ == "__main__":
-    EPS = 5000
-    program = '(a1 (a2 (a3 a1 a2 a3))) (a5 (a6 (a7 a5 a6 a7))) (x (y y))  (a8(a9 a9)) (a10(a11 a10)) "FALSE" "TRUE"'
+    EPS = 1
+    program = '{<x> <x> <x>} {<y> {<f> <y>}} {<a> <a>} "" ""'
+
     time_millis = time.time_ns() / 10 ** 6
 
 
@@ -161,8 +194,7 @@ if __name__ == "__main__":
 
 
     while program != '':
-        # print(program)
+        print(program)
         program = eval(program)
-
-    # tick()
+        tick()
     print(out_buffer)
