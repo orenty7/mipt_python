@@ -76,6 +76,8 @@ try:
         print(str_ast(ast))
         ast = eval(ast)
 except:
-    pass
+    print('error')
+
+
 print(out_buffer)
 print(len(out_buffer))

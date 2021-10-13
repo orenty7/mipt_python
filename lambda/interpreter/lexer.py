@@ -18,7 +18,7 @@ class Lexer:
         self.i -= 1
         self.ch = self.program[self.i] if self.i < len(self.program) else ''
 
-    allowed_var_name_symbols = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890<>'
+    allowed_var_name_symbols = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890<>_'
 
     def next_token(self):
         self.t_type = None

@@ -10,8 +10,8 @@ class AST_Node:
 
 
 class Parser:
-    SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, EXPR, ROOT, STR, NUM, SEQ = \
-        'SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, EXPR, ROOT, STR, NUM, SEQ'.split(', ')
+    SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, STR, NUM, SEQ = \
+        'SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, STR, NUM, SEQ'.split(', ')
 
     def __init__(self, program):
         self.lexer = Lexer(program)
@@ -84,6 +84,18 @@ class Parser:
 
         return body
 
+    def parse_all(self):
+        command = self.parse()
+        if command is None:
+            return command
+
+        next_command = self.parse()
+        while next_command is not None:
+            command = AST_Node(Parser.SEQ, command, next_command)
+            next_command = self.parse()
+
+        return command
+
     def parse(self):
         if self.lexer.t_type == Lexer.IDENT:
             var = AST_Node(Parser.VAR, self.lexer.t_value)
@@ -104,6 +116,7 @@ class Parser:
             if self.lexer.t_type == Lexer.ELSE:
                 self.lexer.next_token()
                 else_body = self.parse_braced_block()
+                self.lexer.next_token()
                 ast_node = AST_Node(Parser.IF_ELSE, condition, if_body, else_body)
             else:
                 ast_node = AST_Node(Parser.IF, condition, if_body)
@@ -114,10 +127,13 @@ class Parser:
             condition = self.parse_expression()
 
             while_body = self.parse_braced_block()
+            self.lexer.next_token()
             ast_node = AST_Node(Parser.WHILE, condition, while_body)
         elif self.lexer.t_type == Lexer.NEWL:
             self._remove_nl()
             return self.parse()
+        elif self.lexer.t_type == Lexer.EOF:
+            return None
         else:
             self.error('Unexpected token: ' + self.lexer.t_type)
 

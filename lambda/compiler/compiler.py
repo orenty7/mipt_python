@@ -1,136 +1,109 @@
-from parser import Parser
-
-
-def l_list(*args):
-    return '[{<f> {<x> ' + _list(args) + '}}]'
-
-
-def _list(l):
-    if len(l) == 0:
-        return '<x>'
-    return '<f> (' + str(l[0]) + ') (' + _list(l[1::]) + ')'
-
-
-def pair_list(args):
-    if len(args) == 0:
-        return '""'
-    if len(args) >= 1:
-        return '`pair` (' + args[0] + ') (' + pair_list(args[1::]) + ')'
-
-
-def replace_var_names(command: str, vars: [str]) -> (str, [str]):
-    global counter
-    new_vars = []
-    for var in vars:
-        command = command.replace(var, '<' + str(counter) + '>')
-        new_vars.append('<' + str(counter) + '>')
-        counter += 1
-    return command, new_vars
-
-
-l_generators = {
-    'num': lambda x: replace_var_names('[{<s> {<z> ' + '<s> (' * x + '<z>' + ')' * x + '}}]', ['<s>', '<z>'])[0],
-    'list': lambda *args: replace_var_names(l_list(*args), ['<x>', '<f>'])[0],
-    'pair_list': lambda *args: pair_list(args)
-}
-
-l_functions = {
-    'true': ['{<x> {<y> <x>}}', '<x>', '<y>'],
-    'false': ['{<x> {<y> <y>}}', '<x>', '<y>'],
-    'if': ['{<c> {<t> {<f> <c> <t> <f>}}}', '<c>', '<t>', '<f>'],
-
-    'not': ['{<x> `if` <x> `false` `true`}', '<x>'],
-    'and': ['{<x> {<y> `if` <x> <y> `true`}}', '<x>', '<y>'],
-    'or': ['{<x> {<y> `if` <x> `true` <y>}}', '<x>', '<y>'],
-    'nor': ['{<x> {<y>  (`and` (`or` <x> <y>) (`not` (`and` <x> <y>)) ) }}', '<x>', '<y>'],
-
-    'pair': ['{<x> {<y> {<f> <f> <x> <y>}}}', '<x>', '<y>', '<f>'],
-    'fst': ['{<p> <p> `true`}', '<p>'],
-    'snd': ['{<p> <p> `false`}', '<p>'],
-
-    'triplet': ['{<x> {<y> {<z> {<f> <f> <x> <y> <z> }}}}', '<x>', '<y>', '<z>', '<f>'],
-    'fst_t': ['{<t> <t> [{<1> {<2> {<3> <1>}}}] }', '<t>'],
-    'snd_t': ['{<t> <t> [{<1> {<2> {<3> <2>}}}] }', '<t>'],
-    'thd_t': ['{<t> <t> [{<1> {<2> {<3> <3>}}}] }', '<t>'],
-
-    'Y': ['{<f> <f> <f>}', '<f>'],
-
-    '0': ['`false`'],
-    '(+1)': ['{<n> {<s> {<z> <n> <s> (<s> <z>) }}}', '<n>', '<s>', '<z>'],
-    '(-1)': ['{<num> `fst` (<num>  [{<p> `pair` (`snd` <p>) (`(+1)`(`snd` <p>))}] (`pair` `0` `0`) )}', '<num>', '<p>'],
-    'sum': ['{<m> {<n> <m> `(+1)` <n> }}', '<m>', '<n>'],
-    'sub': ['{<m> {<n> <n> `(-1)` <m>}}', '<m>', '<n>'],
-    'mul': ['{<m> {<n> <m> (`sum` <n>) `0`}}', '<m>', '<n>'],
-
-    'l_head': ['[{<l> <l> [{<x>{<acc> <x>}}] "" }', '<l>', '<x>', '<acc>'],
-
-    'for_i': ['''{<code> {<i>  
-                    (`Y` [{<f> {<l> (`fst` <l>) (<f> <f> (`snd` <l>)) }}])
-                    (`fst_t`
-                        (<i>
-                            [{<t> 
-                                (`triplet` 
-                                    (`pair` ((`snd_t` <t>) (`thd_t` <t>)) (`fst_t` <t>))
-                                    (`snd_t` <t>) 
-                                    (`(+1)` (`thd_t` <t>) ) 
-                                )   
-                            }]
-                            (`triplet` ("") (<code>) `0`)
-                        )
-                    )
-                }}
-            '''
-        , '<code>', '<i>', '<f>', '<t>'],
-
-    'head': ['{<l> `fst` <l>}', '<l>'],
-    'tail': ['{<l> `snd` <l>}', '<l>'],
-    'take_i': ['{<l> {<i> `pair`  }}}'],
-    'get_i': ['{<l> {<i> `fst` (<i> `snd` <l>) }}', '<l>', '<i>'],
-    'set_i': ['{<l> {<i> {<var> <i> [{<l> `pair` (`fst` <l>) (`snd` <l>) }]  }}}', '<l>', '<i>', '<var>']
-}
-counter = 0
-compiled_functions = {}
-
-
-def l_compiler():
-    global counter, l_functions, l_generators, compiled_functions
-
-    for key in l_functions.keys():
-        command = l_functions[key][0]
-        new_command, new_vars = replace_var_names(command, l_functions[key][1::])
-        compiled_functions[key] = [new_command] + new_vars
-
-        for fn in l_functions.keys():
-            while '`' + fn + '`' in compiled_functions[key][0]:
-                function, vars = compiled_functions[key][0], compiled_functions[key][1::]
-                sub_function, sub_vars = compiled_functions[fn][0], compiled_functions[fn][1::]
-                sub_function, sub_vars = replace_var_names(sub_function, sub_vars)
-                function = function.replace('`' + fn + '`', '[' + sub_function + ']', 1)
-                vars.extend(sub_vars)
-                compiled_functions[key] = [function] + vars
-
-
-def compile_simple_l_expression(l_expression):
-    for fn in compiled_functions.keys():
-        while '`' + fn + '`' in l_expression:
-            sub_function, sub_vars = compiled_functions[fn][0], compiled_functions[fn][1::]
-            sub_function, sub_vars = replace_var_names(sub_function, sub_vars)
-            l_expression = l_expression.replace('`' + fn + '`', '[' + sub_function + ']', 1)
-
-    return l_expression
-
-
-l_compiler()
-xor = compile_simple_l_expression(
-    '`for_i` [{<i> <i> {x "1" x} " "}] ' + l_generators['num'](20)
-)
-print(xor, file=open('program.lm', 'w'))
+from parser import Parser, AST_Node
+from l_functions import *
 
 
 class Compiler:
+    variables = {}
+    var_counter = 0
+
     def __init__(self, program):
         parser = Parser(program)
-        self.ast = parser.parse()
+        self.ast = parser.parse_all()
 
-    def compile(self, node):
-        pass
+    def error(self, msg):
+        raise Exception('Compiler error:', msg)
+
+    def map_var_memory(self, node):
+        if type(node) != AST_Node:
+            return
+
+        if node.node_type == Parser.VAR:
+            if node.op1 not in self.variables:
+                self.variables[node.op1] = self.var_counter
+                self.var_counter += 1
+            return
+
+        self.map_var_memory(node.op1)
+        self.map_var_memory(node.op2)
+        self.map_var_memory(node.op3)
+
+    def set_var(self, varname, value):
+        return '(' + l_generators['set_k'](self.var_counter, self.variables[varname]) + ' <memory> (' + str(value) + '))'
+
+    def get_var(self, varname):
+        return '(' + l_generators['get_k'](self.var_counter, self.variables[varname]) + ' <memory>)'
+
+    def compile_expression(self, ast):
+        if ast.node_type == Parser.NUM:
+            return l_generators['num'](ast.op1)
+        elif ast.node_type == Parser.STR:
+            return '"' + ast.op1 + '"'
+        elif ast.node_type == Parser.VAR:
+            return self.get_var(ast.op1)
+        elif ast.node_type == Parser.ADD:
+            return compile_simple_l_expression('(`add` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.SUB:
+            return compile_simple_l_expression('(`sub` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.MUL:
+            return compile_simple_l_expression('(`mul` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.EQ:
+            return compile_simple_l_expression('(`eq` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.NEQ:
+            return compile_simple_l_expression('(`neq` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.LT:
+            return compile_simple_l_expression('(`lt` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.GT:
+            return compile_simple_l_expression('(`gt` (' +
+                                               self.compile_expression(ast.op1) + ') (' +
+                                               self.compile_expression(ast.op2) + '))')
+        else:
+            self.error('Unexpected node in expression. node_type:' + ast.node_type)
+
+    def compile_command(self, node):
+        res = '[{<memory> '
+        if node.node_type == Parser.SET:
+            res += self.set_var(node.op1.op1, self.compile_expression(node.op2))
+        elif node.node_type == Parser.IF:
+            res += self.compile_expression(node.op1) + ' (' + self.compile_command(node.op2) + ' <memory>) ("")'
+        elif node.node_type == Parser.IF_ELSE:
+            res += self.compile_expression(node.op1) + ' (' + \
+                   self.compile_command(node.op2) + ' <memory>) (' + \
+                   self.compile_command(node.op3) + ' <memory>)'
+        elif node.node_type == Parser.WHILE:
+            res += compile_simple_l_expression('`while` <memory> (' + self.compile_expression(node.op1) + ') (' + self.compile_command(node.op2) + ')')
+        elif node.node_type == Parser.SEQ:
+            res += self.compile_command(node.op2) + ' (' + self.compile_command(node.op1) + ' <memory>)'
+        else:
+            res += '"very sad ;("'
+        res += '}]'
+        return res
+
+    def compile(self):
+        self.map_var_memory(self.ast)
+        commands = self.compile_command(self.ast)
+        memory = '(' + l_generators['n_plet'](self.var_counter) + ' ("")' * self.var_counter + ')'
+        return '[{<mem> (<mem> {<a> <a>}) {x "1" x} ""}] (' + commands + ' ' + memory + ')'
+
+
+program = '''
+a = 5
+if a < 4 {
+    a = 10
+} else {
+    a = 3
+}
+'''
+compiler = Compiler(program)
+print(compiler.compile(), file=open('./program.lm', 'w') )
