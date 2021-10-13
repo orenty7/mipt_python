@@ -113,18 +113,13 @@ class Compiler:
 
 program = '''
 a = 3
-b = 2
+b = 10
 tmp = 0
-
-while a > 0 {
-    if a > b {
-        tmp = a
-        a = b
-        b = tmp
-    }
-    b = b - a 
+if a > b {
+    a = a + b
+} else {
+    a = b - a
 }
-a = b
 '''
 compiler = Compiler(program)
 print(compiler.compile(), file=open('./program.lm', 'w'))
