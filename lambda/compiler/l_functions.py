@@ -112,9 +112,9 @@ l_functions = {
     'eq':  ['{<m> {<n> (`and` (`leq` <m> <n>) (`geq` <m> <n>)) }}', '<m>', '<n>'],
     'neq': ['{<m> {<n> (`or`  (`lt`  <m> <n>) (`gt`  <m> <n>)) }}', '<m>', '<n>'],
 
-    'while': ['''`Y` [{<while> {<memory> {<condition> {<code> 
-                     ((<condition> <memory>) (<while> <while> (<code> <memory>) (<condition>) (<code>)) (""))
-                }}}}]
+    'while': ['''(`Y` [{<while> {<memory> {<condition> {<code> 
+                     ((<condition> <memory>) ((`Y` <while>) (<code> <memory>) (<condition>) (<code>)) (<memory>))
+                }}}}])
     ''', '<while>', '<memory>', '<condition>', '<code>'],
 
     'l_head': ['[{<l> <l> [{<x>{<acc> <x>}}] "" }', '<l>', '<x>', '<acc>'],
