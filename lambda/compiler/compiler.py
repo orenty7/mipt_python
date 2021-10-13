@@ -69,6 +69,16 @@ class Compiler:
             return compile_simple_l_expression('(`gt` (' +
                                                self._compile_expression(ast.op1) + ') (' +
                                                self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.AND:
+            return compile_simple_l_expression('(`and` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.OR:
+            return compile_simple_l_expression('(`or` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.NOT:
+            return compile_simple_l_expression('(`not` (' + self.compile_expression(ast.op1) + '))')
         else:
             self.error('Unexpected node in expression. node_type:' + ast.node_type)
 
@@ -98,14 +108,36 @@ class Compiler:
         self.map_var_memory(self.ast)
         commands = self.compile_command(self.ast)
         memory = '(' + l_generators['n_plet'](self.var_counter) + ' ("")' * self.var_counter + ')'
-        return '[{<mem> (<mem> {<a> <a>}) {x "1" x} ""}] (' + commands + ' ' + memory + ')'
+        return '[{<mem> (<mem> {<a>{<b>{<tmp> <a>}}}) {x "1" x} ""}] (' + commands + ' ' + memory + ')'
 
 
 program = '''
-a = 5
-while a < 10 {
-    a = a + 3
+a = 3
+b = 2
+tmp = 0
+
+while a > 0 {
+    if a > b {
+        tmp = a
+        a = b
+        b = tmp
+    }
+    b = b - a 
 }
+a = b
 '''
 compiler = Compiler(program)
 print(compiler.compile(), file=open('./program.lm', 'w'))
+
+
+a = 10
+b = 2
+tmp = 0
+
+while a > 0:
+    if a > b:
+        tmp = a
+        a = b
+        b = tmp
+    b = b - a
+    print(a, b)

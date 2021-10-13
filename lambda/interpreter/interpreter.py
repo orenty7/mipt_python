@@ -18,6 +18,22 @@ def call_lambda(var, body, arg):
         return AST_Node(body.node_type, call_lambda(var, body.op1, arg), call_lambda(var, body.op2, arg))
 
 
+def eval_arg(ast):
+    if ast.node_type == Parser.STR:
+        return ast
+
+    if ast.node_type == Parser.SCOPED_BLOCK or ast.node_type == Parser.FORBIDDEN_BLOCK:
+        return AST_Node(ast.node_type, eval_arg(ast.op1))
+
+    if ast.node_type == Parser.SEQ:
+        if ast.op1.node_type == Parser.LAMBDA:
+            return eval_arg(call_lambda(ast.op1.op1, ast.op1.op2, ast.op2))
+        elif ast.op1.node_type == Parser.STR:
+            return AST_Node(Parser.SEQ, ast.op1, eval_arg(ast.op2))
+
+    return ast
+
+
 def eval(ast):
     global out_buffer
     if ast.node_type == Parser.STR:
@@ -28,7 +44,8 @@ def eval(ast):
 
     if ast.node_type == Parser.SEQ:
         if ast.op1.node_type == Parser.LAMBDA:
-            return call_lambda(ast.op1.op1, ast.op1.op2, ast.op2)
+
+            return call_lambda(ast.op1.op1, ast.op1.op2, eval_arg(ast.op2))
         elif ast.op1.node_type == Parser.STR:
             eval(ast.op1)
             return ast.op2
@@ -73,11 +90,10 @@ ast = parser.parse_all()
 out_buffer = ''
 try:
     while ast is not None:
-        print(str_ast(ast))
+        # print(str_ast(ast))
         ast = eval(ast)
 except:
     print('error')
-
 
 print(out_buffer)
 print(len(out_buffer))

@@ -10,8 +10,8 @@ class AST_Node:
 
 
 class Parser:
-    SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, STR, NUM, SEQ = \
-        'SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, STR, NUM, SEQ'.split(', ')
+    SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, STR, NUM, SEQ, AND, OR, NOT = \
+        'SET, IF, IF_ELSE, WHILE, VAR, ADD, SUB, MUL, EQ, NEQ, LT, GT, STR, NUM, SEQ, AND, OR, NOT'.split(', ')
 
     def __init__(self, program):
         self.lexer = Lexer(program)
@@ -53,6 +53,12 @@ class Parser:
                 operation = Parser.SUB
             elif self.lexer.t_type == Lexer.MUL:
                 operation = Parser.MUL
+            elif self.lexer.t_type == Lexer.NOT:
+                operation = Parser.NOT
+            elif self.lexer.t_type == Lexer.AND:
+                operation = Parser.AND
+            elif self.lexer.t_type == Lexer.OR:
+                operation = Parser.OR
             else:
                 self.error('Unknown operation')
 

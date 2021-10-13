@@ -1,6 +1,6 @@
 class Lexer:
-    NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL = \
-        "NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NOT, NEWL".split(
+    NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NEWL, AND, OR, NOT = \
+        "NUM, STR, IDENT, ASSGN, IF, ELSE, WHILE, LBRACKET, RBRACKET, LBRACE, RBRACE, EQ, NEQ, LT, GT, PLUS, MINUS, MUL, EOF, NEWL, AND, OR, NOT".split(
             ', ')
 
     ch = ''
@@ -50,6 +50,10 @@ class Lexer:
                 t_type = Lexer.MINUS
             elif self.ch == '*':
                 t_type = Lexer.MUL
+            elif self.ch == '&':
+                t_type = Lexer.AND
+            elif self.ch == '|':
+                t_type = Lexer.OR
             elif self.ch == '=':
                 self.getchar()
                 if self.ch == '=':
