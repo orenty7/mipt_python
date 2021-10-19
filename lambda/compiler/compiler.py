@@ -1,0 +1,138 @@
+from parser import Parser, AST_Node
+from l_functions import *
+
+
+class Compiler:
+    variables = {}
+    var_counter = 0
+
+    def __init__(self, program):
+        parser = Parser(program)
+        self.ast = parser.parse_all()
+
+    def error(self, msg):
+        raise Exception('Compiler error:', msg)
+
+    def map_var_memory(self, node):
+        if type(node) != AST_Node:
+            return
+
+        if node.node_type == Parser.VAR:
+            if node.op1 not in self.variables:
+                self.variables[node.op1] = self.var_counter
+                self.var_counter += 1
+            return
+
+        self.map_var_memory(node.op1)
+        self.map_var_memory(node.op2)
+        self.map_var_memory(node.op3)
+
+    def set_var(self, varname, value):
+        return '(' + l_generators['set_k'](self.var_counter, self.variables[varname]) + ' <memory> (' + str(
+            value) + '))'
+
+    def get_var(self, varname):
+        return '(' + l_generators['get_k'](self.var_counter, self.variables[varname]) + ' <memory>)'
+
+    def _compile_expression(self, ast):
+        if ast.node_type == Parser.NUM:
+            return l_generators['num'](ast.op1)
+        elif ast.node_type == Parser.STR:
+            return '"' + ast.op1 + '"'
+        elif ast.node_type == Parser.VAR:
+            return self.get_var(ast.op1)
+        elif ast.node_type == Parser.ADD:
+            return compile_simple_l_expression('(`add` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.SUB:
+            return compile_simple_l_expression('(`sub` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.MUL:
+            return compile_simple_l_expression('(`mul` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.EQ:
+            return compile_simple_l_expression('(`eq` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.NEQ:
+            return compile_simple_l_expression('(`neq` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.LT:
+            return compile_simple_l_expression('(`lt` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.GT:
+            return compile_simple_l_expression('(`gt` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.AND:
+            return compile_simple_l_expression('(`and` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.OR:
+            return compile_simple_l_expression('(`or` (' +
+                                               self._compile_expression(ast.op1) + ') (' +
+                                               self._compile_expression(ast.op2) + '))')
+        elif ast.node_type == Parser.NOT:
+            return compile_simple_l_expression('(`not` (' + self.compile_expression(ast.op1) + '))')
+        else:
+            self.error('Unexpected node in expression. node_type:' + ast.node_type)
+
+    def compile_expression(self, ast):
+        return '[{<memory> (' + self._compile_expression(ast) + ')}]'
+
+    def compile_command(self, node):
+        res = '[{<memory> ('
+        if node.node_type == Parser.SET:
+            res += self.set_var(node.op1.op1, '(' + self.compile_expression(node.op2) + '<memory>)')
+        elif node.node_type == Parser.IF:
+            res += '(' + self.compile_expression(node.op1) + '<memory>)' + ' (' + self.compile_command(node.op2) + ' <memory>) (<memory>)'
+        elif node.node_type == Parser.IF_ELSE:
+            res += '(' + self.compile_expression(node.op1) + '<memory>)' + ' (' + \
+                   self.compile_command(node.op2) + ' <memory>) (' + \
+                   self.compile_command(node.op3) + ' <memory>)'
+        elif node.node_type == Parser.WHILE:
+            res += compile_simple_l_expression('`while` (<memory>) (' + self.compile_expression(node.op1) + ') (' + self.compile_command(node.op2) + ')')
+        elif node.node_type == Parser.SEQ:
+            res += self.compile_command(node.op2) + ' (' + self.compile_command(node.op1) + ' <memory>)'
+        else:
+            res += '"very sad ;("'
+        res += ')}]'
+        return res
+
+    def compile(self):
+        self.map_var_memory(self.ast)
+        commands = self.compile_command(self.ast)
+        memory = '(' + l_generators['n_plet'](self.var_counter) + ' ("")' * self.var_counter + ')'
+        return '[{<mem> (<mem> {<a>{<b>{<tmp> <a>}}}) {x "1" x} ""}] (' + commands + ' ' + memory + ')'
+
+
+program = '''
+a = 3
+b = 10
+tmp = 0
+if a > b {
+    a = a + b
+} else {
+    a = b - a
+}
+'''
+compiler = Compiler(program)
+print(compiler.compile(), file=open('./program.lm', 'w'))
+
+
+a = 10
+b = 2
+tmp = 0
+
+while a > 0:
+    if a > b:
+        tmp = a
+        a = b
+        b = tmp
+    b = b - a
+    print(a, b)
