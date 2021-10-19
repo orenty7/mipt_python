@@ -13,6 +13,8 @@ def random_color():
 
 class Game:
     def __init__(self, config):
+        pygame.init()
+
         self.config = config
         self.screen = pygame.display.set_mode(config.DIMENTIONS)
         self.clock = pygame.time.Clock()
