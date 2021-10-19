@@ -10,7 +10,7 @@ def _random(_min, _max):
 
 class Square(GameObject):
 
-    def __init__(self, box, color, velocity_range, size_range):
+    def __init__(self, box, color, size_range, velocity_range):
         self.box = box
         self.color = color
 
@@ -62,3 +62,6 @@ class Square(GameObject):
 
     def draw(self, surface):
         rect(surface, self.color, (self.x - self.size, self.y - self.size, self.size * 2, self.size * 2))
+
+    def cmp_size(self):
+        return self.size

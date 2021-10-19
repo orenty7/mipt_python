@@ -10,7 +10,7 @@ def _random(_min, _max):
 
 class Circle(GameObject):
 
-    def __init__(self, box, color, velocity_range, radius_range):
+    def __init__(self, box, color, radius_range, velocity_range):
         self.box = box
         self.color = color
 
@@ -62,3 +62,6 @@ class Circle(GameObject):
 
     def draw(self, surface):
         circle(surface, self.color, (self.x, self.y), self.r)
+
+    def cmp_size(self):
+        return self.r
