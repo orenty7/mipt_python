@@ -90,7 +90,6 @@ ast = parser.parse_all()
 out_buffer = ''
 try:
     while ast is not None:
-        # print(str_ast(ast))
         ast = eval(ast)
 except:
     print('error')
