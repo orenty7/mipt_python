@@ -163,7 +163,7 @@ class Target:
         self.points = 0
         self.x = randint(600, 780)
         self.y = randint(300, 550)
-        self.r = randint(2, 50)
+        self.r = randint(5, 50)
         self.color = RED
 
     def new_target(self):
