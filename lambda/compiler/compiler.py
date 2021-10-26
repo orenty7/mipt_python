@@ -108,13 +108,12 @@ class Compiler:
         self.map_var_memory(self.ast)
         commands = self.compile_command(self.ast)
         memory = '(' + l_generators['n_plet'](self.var_counter) + ' ("")' * self.var_counter + ')'
-        return '[{<mem> (<mem> {<a>{<b>{<tmp> <a>}}}) {x "1" x} ""}] (' + commands + ' ' + memory + ')'
+        return '[{<mem> (<mem> {<a>{<b> <a>}}) {x "1" x} ""}] (' + commands + ' ' + memory + ')'
 
 
 program = '''
 a = 3
 b = 10
-tmp = 0
 if a > b {
     a = a + b
 } else {
@@ -123,16 +122,3 @@ if a > b {
 '''
 compiler = Compiler(program)
 print(compiler.compile(), file=open('./program.lm', 'w'))
-
-
-a = 10
-b = 2
-tmp = 0
-
-while a > 0:
-    if a > b:
-        tmp = a
-        a = b
-        b = tmp
-    b = b - a
-    print(a, b)

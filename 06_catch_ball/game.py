@@ -2,6 +2,7 @@ import pygame
 from random import randint, choice
 from subclasses import Range, Cors
 from colors import *
+from time import time
 
 
 def random_color():
@@ -12,6 +13,8 @@ def random_color():
 
 
 class Game:
+    FONTSIZE = 50
+
     def __init__(self, config):
         pygame.init()
 
@@ -25,12 +28,14 @@ class Game:
 
     def generate_game_object(self):
         game_object_dict = choice(self.config.objects)
-        return game_object_dict['class'](
+        game_object = game_object_dict['class'](
             self.box,
             random_color(),
             game_object_dict['size_range'],
             game_object_dict['velocity_range']
         )
+        game_object.points = game_object_dict['points']
+        return game_object
 
     def game_objects_factory(self):
         for i in range(self.config.OBJECT_COUNT):
@@ -42,14 +47,9 @@ class Game:
     def onclick(self, mouse):
         for i in range(len(self.game_objects)):
             if self.game_objects[i].is_point_in_object(mouse):
-                self.score += self.point_for_hit(self.game_objects[i])
+                self.score += self.game_objects[i].points
                 self.game_objects[i] = self.generate_game_object()
         self.sort_game_objects_by_size()
-
-    def point_for_hit(self, game_object):
-        for _object in self.config.objects:
-            if type(game_object) is _object['class']:
-                return _object['points']
 
     def tick(self):
         dt = 1 / self.config.FPS
@@ -62,14 +62,20 @@ class Game:
 
     def render_score(self):
         cors = (10, 15)
-        FONTSIZE = 50
-        font = pygame.font.SysFont("", FONTSIZE)
-        fontImage = font.render("Score: {score} ".format(score=self.score), True, CYAN, BLACK)
-        self.screen.blit(fontImage, cors)
+        font = pygame.font.SysFont("", self.FONTSIZE)
+        font_image = font.render("Score: {score}".format(score=self.score), True, CYAN, BLACK)
+        self.screen.blit(font_image, cors)
 
-    def play(self):
+    def render_left_time(self, time):
+        cors = (10, 60)
+        font = pygame.font.SysFont("", self.FONTSIZE)
+        font_image = font.render("time left: {time}".format(time=time), True, GREEN, BLACK)
+        self.screen.blit(font_image, cors)
+
+    def play(self, play_time):
         finished = False
-        while not finished:
+        start_time = time()
+        while not finished and time() - start_time < play_time:
             self.clock.tick(self.config.FPS)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -82,6 +88,7 @@ class Game:
             self.screen.fill('BLACK')
             self.render()
             self.render_score()
+            self.render_left_time(int(play_time + start_time - time()))
             self.tick()
-
         pygame.quit()
+        return self.score
