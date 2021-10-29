@@ -1,3 +1,0 @@
-CONFIG = {
-    'gravity': 300
-}
