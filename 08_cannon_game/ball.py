@@ -1,10 +1,16 @@
 from random import choice
+from math import hypot
 import pygame
 
 from colors import *
 
 
 class Ball:
+    MIN_SPEED = 5
+    GRAVITY = 300
+    RESISTANCE = 0.3
+    REFLECT_COEFFICIENT = 0.5
+
     def __init__(self, screen: pygame.Surface, x=40, y=450):
         """ Конструктор класса ball
 
@@ -29,21 +35,23 @@ class Ball:
         и стен по краям окна (размер окна 800х600).
         """
         if self.y <= 500:
-            self.vy -= 300 * dt
+            self.vy -= Ball.GRAVITY * dt
             self.y -= self.vy * dt
             self.x += self.vx * dt
-            self.vx *= 0.99
+            self.vx -= Ball.RESISTANCE * self.vx * dt
         else:
-            self.vy = -self.vy / 2
-            self.vx = self.vx / 2
-            self.y = 499
+            if hypot(self.vx, self.vy) < Ball.MIN_SPEED:
+                self.live = False
+            else:
+                self.vy = abs(self.vy) * Ball.REFLECT_COEFFICIENT
+                self.vx = self.vx * Ball.REFLECT_COEFFICIENT
+                self.y = 500
         if self.x > 780:
-            self.vx = -self.vx / 2
-            self.x = 779
-        if self.vx**2 + self.vy**2 < 10:
-            self.live = False
+            self.vx = -abs(self.vx) * Ball.REFLECT_COEFFICIENT
+            self.x = 780
 
     def draw(self):
+        """Отрисовывает мяч на экране"""
         pygame.draw.circle(
             self.screen,
             self.color,

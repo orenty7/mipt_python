@@ -14,6 +14,7 @@ class Gun:
         self.color = GREY
 
     def fire2_start(self, event):
+        """Включает заряд пушки """
         self.f2_on = 1
 
     def fire2_end(self, event, balls):
@@ -42,14 +43,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        # image = pygame.Surface((60, 15))
-        # image.fill(WHITE)
-        # pygame.draw.rect(image, self.color, ((1, 1), (60, 15)))
-        #
-        # pygame.draw.rect(image, BLUE, (20, 5, 20, 5))
-        # new_image = pygame.transform.rotate(image, -degrees(self.an))
-        # screen.blit(new_image, (20, 430))
-        # # FIXIT don't know how to do it
+        """Рисует пушку на экране"""
         width = 10
         rect = ((20, 450),
                 (20 + max(self.f2_power, 20) * cos(self.an),
@@ -61,6 +55,7 @@ class Gun:
         pygame.draw.polygon(self.screen, self.color, rect)
 
     def power_up(self):
+        """Отслеживает силу заряда пушки"""
         if self.f2_on:
             if self.f2_power < 100:
                 self.f2_power += 1

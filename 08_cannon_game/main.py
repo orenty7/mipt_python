@@ -6,14 +6,10 @@ import pygame
 from target import Target
 from gun import Gun
 
-rnd = randint
-
-FPS = 30
+FPS = 60
 
 WIDTH = 800
 HEIGHT = 600
-
-
 
 
 def draw():
@@ -85,7 +81,7 @@ while not finished:
         target.move(dt)
     for b in balls:
         b.move(dt)
-        if b.live <= 0:
+        if not b.live:
             balls.remove(b)
         if b.hittest(target) and not in_new_game_offset():
             target.hit()
