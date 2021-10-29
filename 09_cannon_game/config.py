@@ -1,0 +1,3 @@
+CONFIG = {
+    'gravity': 300
+}
