@@ -1,8 +1,4 @@
-from ball.LinearBall import LinearBall
-from ball.FragBall import FragBall
-from ball.GravityBall import GravityBall
-from ball.GravityFragBall import GravityFragBall
-from ball.AttackingBall import AttackingBall
+from ball import *
 from config import CONFIG
 from colors import *
 
